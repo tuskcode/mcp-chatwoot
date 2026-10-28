@@ -1,6 +1,6 @@
 # Chatwoot Application API — MCP Coverage
 
-Last updated: 2026-02-16
+Last updated: 2026-10-28
 
 ## Summary
 
@@ -10,10 +10,30 @@ Last updated: 2026-02-16
 | Tools (v0.3.0) | 59 |
 | Tools (v0.4.0) | 68 |
 | Tools (v0.5.0) | 81 |
-| Resources covered | 21 |
+| Current Core tools (with companies) | 89 |
+| All buckets | 141 |
+| Resources covered | 22 |
 | Endpoints excluded | ~11 (see Exclusions) |
 
 ## Coverage Matrix
+
+### Companies (Core)
+
+Verified against official Chatwoot v4.19.1, commit `caab07a8f00032d5205b5a5d7e2eb0ba2f3d2d82`.
+Installed server version is not identifiable from this repository. See
+[Companies](COMPANIES.md) for source links, fields, feature gates and compatibility limits.
+All paths are relative to `/api/v1/accounts/{account_id}`.
+
+| Endpoint | Method | MCP Tool | Status |
+|----------|--------|----------|--------|
+| `/companies` | GET | `list_companies` | Native pagination and sorting |
+| `/companies/search` | GET | `search_companies` | Name/domain substring, `q`, pagination and sorting |
+| `/companies/{id}` | GET | `get_company` | Native detail |
+| `/companies/{id}/contacts` | GET | `get_company_contacts` | Native association, paginated (25/page) |
+| `/companies` | POST | `create_company` | Nested `company` payload |
+| `/companies/{id}` | PATCH | `update_company` | Only provided fields; preserve omitted attribute keys |
+| `/companies/{id}` | DELETE | `delete_company` | Async deletion; blocked by safe mode |
+| `/contacts/{id}` | PATCH | `set_contact_company` | Top-level `company_id`, including null; availability check before PATCH |
 
 ### Contacts
 

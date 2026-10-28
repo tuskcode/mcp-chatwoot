@@ -20,7 +20,7 @@ const PLATFORM_TOKEN = 'platform-test-token';
 describe('Safe Mode Guardrails', () => {
   // ─── Core: MCP_SAFE_MODE ───────────────────────────
 
-  describe('Core MCP_SAFE_MODE (14 tools)', () => {
+  describe('Core MCP_SAFE_MODE (15 tools)', () => {
     let client: ChatwootClient;
 
     beforeEach(() => {
@@ -35,6 +35,7 @@ describe('Safe Mode Guardrails', () => {
 
     const CORE_DESTRUCTIVE_TOOLS: Array<{ name: string; args: Record<string, unknown> }> = [
       { name: 'delete_contact', args: { contact_id: 1 } },
+      { name: 'delete_company', args: { company_id: 1 } },
       { name: 'delete_message', args: { conversation_id: 1, message_id: 1 } },
       { name: 'delete_team', args: { team_id: 1 } },
       { name: 'delete_label', args: { label_id: 1 } },
@@ -50,8 +51,8 @@ describe('Safe Mode Guardrails', () => {
       { name: 'update_webhook', args: { webhook_id: 1, url: 'https://hook.test' } },
     ];
 
-    it('exactly 14 core destructive tools', () => {
-      expect(CORE_DESTRUCTIVE_TOOLS).toHaveLength(14);
+    it('exactly 15 core destructive tools', () => {
+      expect(CORE_DESTRUCTIVE_TOOLS).toHaveLength(15);
     });
 
     for (const { name, args } of CORE_DESTRUCTIVE_TOOLS) {
@@ -301,8 +302,8 @@ describe('Safe Mode Guardrails', () => {
   // ─── Cross-bucket: total blocked count ─────────────
 
   describe('total blocked counts match documentation', () => {
-    it('core (14) + enterprise (3) + helpcenter (3) = 20 destructive via MCP_SAFE_MODE', () => {
-      expect(14 + 3 + 3).toBe(20);
+    it('core (15) + enterprise (3) + helpcenter (3) = 21 destructive via MCP_SAFE_MODE', () => {
+      expect(15 + 3 + 3).toBe(21);
     });
 
     it('platform write tools = 11 via MCP_PLATFORM_SAFE_MODE', () => {

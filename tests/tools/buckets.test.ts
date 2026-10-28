@@ -11,8 +11,8 @@ describe('Bucket Registration', () => {
   // ─── Array Counts ──────────────────────────────────
 
   describe('tool counts', () => {
-    it('core tools = 81', () => {
-      expect(coreTools).toHaveLength(81);
+    it('core tools = 89', () => {
+      expect(coreTools).toHaveLength(89);
     });
 
     it('public tools = 12', () => {
@@ -31,14 +31,14 @@ describe('Bucket Registration', () => {
       expect(helpCenterTools).toHaveLength(15);
     });
 
-    it('all buckets total = 133', () => {
+    it('all buckets total = 141', () => {
       const total =
         coreTools.length +
         publicTools.length +
         platformTools.length +
         enterpriseTools.length +
         helpCenterTools.length;
-      expect(total).toBe(133);
+      expect(total).toBe(141);
     });
   });
 
@@ -185,7 +185,7 @@ describe('Bucket Registration', () => {
       expect(getBucketConfig().platformSafeMode).toBe(false);
     });
 
-    it('simulates all-on: 133 tools total', () => {
+    it('simulates all-on: 141 tools total', () => {
       process.env.MCP_ENABLE_PUBLIC_API = 'true';
       process.env.MCP_ENABLE_PLATFORM_API = 'true';
       process.env.MCP_ENABLE_ENTERPRISE = 'true';
@@ -197,33 +197,33 @@ describe('Bucket Registration', () => {
       if (config.platformApi) count += platformTools.length;
       if (config.enterprise) count += enterpriseTools.length;
       if (config.helpCenter) count += helpCenterTools.length;
-      expect(count).toBe(133);
+      expect(count).toBe(141);
     });
 
-    it('simulates core-only (default): 81 tools', () => {
+    it('simulates core-only (default): 89 tools', () => {
       const config = getBucketConfig();
       let count = coreTools.length;
       if (config.publicApi) count += publicTools.length;
       if (config.platformApi) count += platformTools.length;
       if (config.enterprise) count += enterpriseTools.length;
       if (config.helpCenter) count += helpCenterTools.length;
-      expect(count).toBe(81);
+      expect(count).toBe(89);
     });
 
-    it('simulates core + public: 93 tools', () => {
+    it('simulates core + public: 101 tools', () => {
       process.env.MCP_ENABLE_PUBLIC_API = 'true';
       const config = getBucketConfig();
       let count = coreTools.length;
       if (config.publicApi) count += publicTools.length;
-      expect(count).toBe(93);
+      expect(count).toBe(101);
     });
 
-    it('simulates core + platform: 98 tools', () => {
+    it('simulates core + platform: 106 tools', () => {
       process.env.MCP_ENABLE_PLATFORM_API = 'true';
       const config = getBucketConfig();
       let count = coreTools.length;
       if (config.platformApi) count += platformTools.length;
-      expect(count).toBe(98);
+      expect(count).toBe(106);
     });
   });
 });

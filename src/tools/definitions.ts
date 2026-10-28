@@ -8,6 +8,31 @@ const accountIdProperty = {
   },
 };
 
+const companyProperties = {
+  name: { type: 'string', minLength: 1, description: 'Company name (required on creation)' },
+  domain: { type: ['string', 'null'], description: 'Domain without protocol, or null to clear' },
+  description: { type: ['string', 'null'], description: 'Company description, or null to clear' },
+  additional_attributes: { type: 'object', description: 'Additional attributes. Updates preserve omitted nested keys. Social profile values must be HTTP(S) URLs.' },
+  custom_attributes: { type: 'object', description: 'Custom attributes. Updates preserve omitted nested keys; explicit null values are sent.' },
+};
+
+const companyIdProperty = {
+  company_id: { type: 'integer', minimum: 1, description: 'Company ID' },
+};
+
+const companyPageProperty = {
+  page: { type: 'integer', minimum: 1, description: 'Page number (default: 1)' },
+};
+
+const companySortProperty = {
+  sort: {
+    type: 'string',
+    description: 'Sort field; prefix with - for descending (default: name)',
+    enum: ['name', '-name', 'domain', '-domain', 'created_at', '-created_at',
+      'last_activity_at', '-last_activity_at', 'contacts_count', '-contacts_count'],
+  },
+};
+
 export const tools: Tool[] = [
   // ─── Health ──────────────────────────────────────────────
   {
@@ -17,6 +42,60 @@ export const tools: Tool[] = [
     inputSchema: {
       type: 'object' as const,
       properties: { ...accountIdProperty },
+    },
+  },
+
+  // ─── Companies ──────────────────────────────────────────
+  {
+    name: 'list_companies',
+    description: 'List companies with pagination (50 per page) and sorting. Requires the Chatwoot companies feature.',
+    inputSchema: { type: 'object', properties: { ...companyPageProperty, ...companySortProperty, ...accountIdProperty } },
+  },
+  {
+    name: 'search_companies',
+    description: 'Search companies by case-insensitive name or domain substring, with pagination and sorting.',
+    inputSchema: {
+      type: 'object',
+      properties: { query: { type: 'string', minLength: 1, description: 'Name or domain search query' }, ...companyPageProperty, ...companySortProperty, ...accountIdProperty },
+      required: ['query'],
+    },
+  },
+  {
+    name: 'get_company',
+    description: 'Get a company by ID.',
+    inputSchema: { type: 'object', properties: { ...companyIdProperty, ...accountIdProperty }, required: ['company_id'] },
+  },
+  {
+    name: 'get_company_contacts',
+    description: 'List contacts associated through company_id using the native endpoint (25 per page, ordered by name then ID).',
+    inputSchema: { type: 'object', properties: { ...companyIdProperty, ...companyPageProperty, ...accountIdProperty }, required: ['company_id'] },
+  },
+  {
+    name: 'create_company',
+    description: 'Create a company. Domain must be unique within the account. JSON attributes are nested under company by the client.',
+    inputSchema: { type: 'object', properties: { ...companyProperties, ...accountIdProperty }, required: ['name'] },
+  },
+  {
+    name: 'update_company',
+    description: 'Update only supplied company fields. Attribute objects are merged with existing values to preserve omitted keys.',
+    inputSchema: { type: 'object', properties: { ...companyIdProperty, ...companyProperties, ...accountIdProperty }, required: ['company_id'] },
+  },
+  {
+    name: 'delete_company',
+    description: 'Schedule company deletion and unlink associated contacts. Requires administrator permissions; blocked by MCP_SAFE_MODE.',
+    inputSchema: { type: 'object', properties: { ...companyIdProperty, ...accountIdProperty }, required: ['company_id'] },
+  },
+  {
+    name: 'set_contact_company',
+    description: 'Assign a contact to a company in the same account, or pass company_id: null to unlink. Checks companies availability before updating the relation.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        contact_id: { type: 'integer', minimum: 1, description: 'Contact ID' },
+        company_id: { type: ['integer', 'null'], minimum: 1, description: 'Company ID, or null to unlink (required)' },
+        ...accountIdProperty,
+      },
+      required: ['contact_id', 'company_id'],
     },
   },
 

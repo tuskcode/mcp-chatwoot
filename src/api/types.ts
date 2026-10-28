@@ -1,4 +1,37 @@
+/** JSON fields accepted by Chatwoot v4.19.1 company strong parameters. */
+export interface CompanyFields {
+  name?: string;
+  domain?: string | null;
+  description?: string | null;
+  additional_attributes?: Record<string, unknown>;
+  custom_attributes?: Record<string, unknown>;
+}
+
+export type CompanySort = 'name' | '-name' | 'domain' | '-domain' |
+  'created_at' | '-created_at' | 'last_activity_at' | '-last_activity_at' |
+  'contacts_count' | '-contacts_count';
+
+export interface ChatwootCompany extends CompanyFields {
+  id: number;
+  name: string;
+  contacts_count?: number;
+  avatar_url?: string;
+  created_at?: number;
+  updated_at?: number;
+  last_activity_at?: number;
+}
+
+export interface CompanyResponse {
+  payload: ChatwootCompany;
+}
+
+export interface CompanyPage<T> {
+  meta: { total_count: number; page: number | string };
+  payload: T[];
+}
+
 export interface ChatwootContact {
+  company_id?: number | null;
   id: number;
   name?: string;
   email?: string;

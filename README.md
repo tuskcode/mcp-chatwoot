@@ -7,14 +7,14 @@
 [![Docker](https://img.shields.io/github/actions/workflow/status/RenatoAscencio/mcp-chatwoot/docker-publish.yml?label=docker&logo=docker)](https://github.com/RenatoAscencio/mcp-chatwoot/actions/workflows/docker-publish.yml)
 [![GHCR](https://img.shields.io/badge/ghcr.io-mcp--chatwoot-2496ED?logo=docker&logoColor=white)](https://github.com/RenatoAscencio/mcp-chatwoot/pkgs/container/mcp-chatwoot)
 [![MCP](https://img.shields.io/badge/MCP-compatible-8A2BE2)](https://modelcontextprotocol.io)
-[![Tools](https://img.shields.io/badge/tools-133-orange)](#buckets-overview)
-[![Tests](https://img.shields.io/badge/tests-240%20passing-success)](#development)
+[![Tools](https://img.shields.io/badge/tools-141-orange)](#buckets-overview)
+[![Tests](https://img.shields.io/badge/tests-297%20passing-success)](#development)
 
 MCP (Model Context Protocol) server for [Chatwoot](https://www.chatwoot.com/) — manage conversations, contacts, messages, agents, teams, and more through AI tools.
 
 ## Features
 
-- **133 tools** covering Chatwoot's Application, Public, Platform, Enterprise, and Help Center APIs
+- **141 tools** covering Chatwoot's Application, Public, Platform, Enterprise, and Help Center APIs
 - **Modular buckets**: Each API group is opt-in with environment flags
 - **Multi-account**: All tools accept an optional `account_id` to target any account
 - **Dual transport**: STDIO (Claude Desktop, Claude Code) and HTTP/SSE (remote access)
@@ -27,17 +27,18 @@ MCP (Model Context Protocol) server for [Chatwoot](https://www.chatwoot.com/) �
 
 | Bucket | Tools | Enable Flag | Auth | Safe Mode |
 |--------|------:|-------------|------|-----------|
-| **Core** | 81 | Always on | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (14 blocked) |
+| **Core** | 89 | Always on | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (15 blocked) |
 | **Public** | 12 | `MCP_ENABLE_PUBLIC_API=true` | `inbox_identifier` | N/A |
 | **Platform** | 17 | `MCP_ENABLE_PLATFORM_API=true` | `CHATWOOT_PLATFORM_API_TOKEN` | `MCP_PLATFORM_SAFE_MODE` (11 blocked) |
 | **Enterprise** | 8 | `MCP_ENABLE_ENTERPRISE=true` | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (3 blocked) |
 | **Help Center** | 15 | `MCP_ENABLE_HELP_CENTER=true` | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (3 blocked) |
 
-### Core Tools (81 — always enabled)
+### Core Tools (89 — always enabled)
 
 | Category | Tools |
 |----------|-------|
 | **Health** | `chatwoot_health` |
+| **Companies** | `list_companies`, `search_companies`, `get_company`, `get_company_contacts`, `create_company`, `update_company`, `delete_company`, `set_contact_company` |
 | **Contacts** | `list_contacts`, `get_contact`, `create_contact`, `update_contact`, `delete_contact`, `search_contacts`, `filter_contacts`, `get_contact_conversations`, `merge_contacts`, `get_contactable_inboxes` |
 | **Contact Labels** | `get_contact_labels`, `add_labels_to_contact` |
 | **Conversations** | `list_conversations`, `get_conversation`, `create_conversation`, `update_conversation_status`, `assign_conversation`, `add_labels_to_conversation`, `get_conversation_labels`, `set_conversation_priority`, `get_conversation_counts`, `filter_conversations`, `set_conversation_custom_attributes` |
@@ -55,6 +56,15 @@ MCP (Model Context Protocol) server for [Chatwoot](https://www.chatwoot.com/) �
 | **Custom Filters** | `list_custom_filters`, `get_custom_filter`, `create_custom_filter`, `update_custom_filter`, `delete_custom_filter` |
 | **Integrations** | `list_integrations` |
 | **Profile** | `get_profile` |
+
+Company tools use the native Chatwoot companies API and `company_id` relation.
+The verified reference is **Chatwoot v4.19.1**; the installed server version is
+not identified by this repository. Creation/update support `name`, `domain`,
+`description`, `additional_attributes`, and `custom_attributes`; updates preserve
+omitted fields and nested keys. `company_id: null` explicitly unlinks a contact.
+Companies must be enabled in Chatwoot, independently of `MCP_ENABLE_ENTERPRISE`.
+See [Companies](docs/COMPANIES.md) for verified sources, pagination, compatibility,
+error handling, write semantics and operational/plugin update instructions.
 
 ### Public API Tools (12 — `MCP_ENABLE_PUBLIC_API=true`)
 
@@ -213,7 +223,11 @@ Add to `~/.claude/mcp.json`:
 
 ### Application API Safe Mode
 
-When `MCP_SAFE_MODE=true`, blocks 14 destructive core tools plus 6 Enterprise/Help Center destructive tools. See [docs/SCOPE.md](docs/SCOPE.md) for the full list.
+When `MCP_SAFE_MODE=true`, blocks 15 destructive core tools plus 6 Enterprise/Help Center destructive tools. See [docs/SCOPE.md](docs/SCOPE.md) for the full list.
+Among company tools, only `delete_company` is blocked; creation, updates and
+contact assignment/unlinking remain allowed. `MCP_READ_ONLY` is no longer
+supported and must be removed from any operational Compose environment or env
+file. No production configuration is changed by this implementation.
 
 ### Platform API Safe Mode
 
@@ -227,12 +241,12 @@ src/
 ├── server.ts             # MCP Server (STDIO transport)
 ├── http-server.ts        # HTTP/SSE server with session management
 ├── api/
-│   ├── client.ts         # Application API client (81 + Enterprise + Help Center)
+│   ├── client.ts         # Application API client (89 + Enterprise + Help Center)
 │   ├── public-client.ts  # Public/Client API client
 │   ├── platform-client.ts # Platform API client
 │   └── types.ts          # TypeScript interfaces
 ├── tools/
-│   ├── definitions.ts    # Core tool schemas (81 tools)
+│   ├── definitions.ts    # Core tool schemas (89 tools)
 │   ├── handlers.ts       # Core tool execution handlers
 │   ├── public/           # Public API bucket
 │   ├── platform/         # Platform API bucket

@@ -2,11 +2,11 @@
 
 ## What This Project Covers
 
-### API Coverage (5 Buckets, 133 Tools)
+### API Coverage (5 Buckets, 141 Tools)
 
 | Bucket | Tools | Enable Flag | Auth | Safe Mode |
 |--------|------:|-------------|------|-----------|
-| **Core** | 81 | Always on | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (14 blocked) |
+| **Core** | 89 | Always on | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (15 blocked) |
 | **Public** | 12 | `MCP_ENABLE_PUBLIC_API=true` | `inbox_identifier` (no token) | N/A |
 | **Platform** | 17 | `MCP_ENABLE_PLATFORM_API=true` | `CHATWOOT_PLATFORM_API_TOKEN` | `MCP_PLATFORM_SAFE_MODE` (11 blocked) |
 | **Enterprise** | 8 | `MCP_ENABLE_ENTERPRISE=true` | `CHATWOOT_API_TOKEN` | `MCP_SAFE_MODE` (3 blocked) |
@@ -17,14 +17,14 @@
 - **HTTP/SSE** — Streamable HTTP transport for remote access and multi-client scenarios
 
 ### Capabilities
-- 133 MCP tools across 5 API buckets
+- 141 MCP tools across 5 API buckets
 - Multi-account support (optional `account_id` on every Application API tool)
 - Dual safe mode: Application (`MCP_SAFE_MODE`) + Platform (`MCP_PLATFORM_SAFE_MODE`)
 - Session management for HTTP mode with automatic cleanup
 
 ## Bucket Details
 
-### Core (81 tools — 21 categories)
+### Core (89 tools — 22 categories)
 
 | # | Category | Tools | Read | Write | Delete |
 |---|----------|-------|------|-------|--------|
@@ -49,8 +49,11 @@
 | 19 | Conversation Custom Attrs | 1 | — | 1 | — |
 | 20 | Inbox Agent Bot | 1 | 1 | — | — |
 | 21 | Contactable Inboxes | 1 | 1 | — | — |
+| 22 | Companies (including contact association) | 8 | 4 | 3 | 1 |
 
-**Totals**: 81 tools (40 read, 27 write, 14 delete/destructive)
+**Totals**: 89 tools (44 read, 30 write, 15 delete/destructive)
+
+See [Companies](COMPANIES.md) for fields, verified Chatwoot v4.19.1 sources and compatibility. All eight company tools are Core. `MCP_READ_ONLY` is no longer supported; remove it from operational Compose/env files.
 
 ### Public (12 tools)
 Widget/client-facing API. Auth via `inbox_identifier` + `contact_identifier`.
@@ -91,10 +94,10 @@ Knowledge base management.
 
 ## Safe Mode — Blocked Tools
 
-### MCP_SAFE_MODE=true (20 tools)
+### MCP_SAFE_MODE=true (21 tools)
 
-**Core (14)**:
-`delete_contact`, `delete_message`, `delete_team`, `delete_label`, `delete_canned_response`, `delete_webhook`, `delete_custom_attribute`, `delete_automation_rule`, `delete_custom_filter`, `remove_inbox_agents`, `remove_team_members`, `merge_contacts`, `create_webhook`, `update_webhook`
+**Core (15)**:
+`delete_company`, `delete_contact`, `delete_message`, `delete_team`, `delete_label`, `delete_canned_response`, `delete_webhook`, `delete_custom_attribute`, `delete_automation_rule`, `delete_custom_filter`, `remove_inbox_agents`, `remove_team_members`, `merge_contacts`, `create_webhook`, `update_webhook`
 
 **Enterprise (3)**:
 `enterprise_create_agent_bot`, `enterprise_update_agent_bot`, `enterprise_delete_agent_bot`
@@ -141,6 +144,7 @@ Knowledge base management.
 - `list_*` / `get_*` / `search_*` → GET
 - `create_*` / `send_*` / `add_*` / `assign_*` / `merge_*` / `set_*` / `filter_*` → POST
 - `update_*` → PATCH
+- `set_contact_company` → PATCH (verified contact update endpoint)
 - `delete_*` / `remove_*` → DELETE
 
 ### API Versions

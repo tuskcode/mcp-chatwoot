@@ -1,12 +1,14 @@
 import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ChatwootClient, ChatwootApiError } from '../api/client.js';
 import { logger } from '../utils/logger.js';
+import type { CompanyFields, CompanySort } from '../api/types.js';
 
 type ToolArgs = Record<string, unknown>;
 
 /** Tools blocked when MCP_SAFE_MODE=true */
 const DESTRUCTIVE_TOOLS = new Set([
   'delete_contact',
+  'delete_company',
   'delete_message',
   'delete_team',
   'delete_label',
@@ -85,6 +87,32 @@ async function dispatch(
         `Connected to Chatwoot successfully.\nAccount ID: ${result.accountId}\nAccount: ${result.accountName || 'OK'}`,
       );
     }
+
+    // ─── Companies ───────────────────────────────────────
+    case 'list_companies':
+      return jsonResult(await client.listCompanies(args.page as number | undefined, args.sort as CompanySort | undefined, acct(args)));
+    case 'search_companies':
+      return jsonResult(await client.searchCompanies(args.query as string, args.page as number | undefined, args.sort as CompanySort | undefined, acct(args)));
+    case 'get_company':
+      return jsonResult(await client.getCompany(args.company_id as number, acct(args)));
+    case 'get_company_contacts':
+      return jsonResult(await client.getCompanyContacts(args.company_id as number, args.page as number | undefined, acct(args)));
+    case 'create_company':
+    case 'update_company': {
+      const fields: CompanyFields = {};
+      for (const key of ['name', 'domain', 'description', 'additional_attributes', 'custom_attributes'] as const) {
+        if (args[key] !== undefined) Object.assign(fields, { [key]: args[key] });
+      }
+      const data = toolName === 'create_company'
+        ? await client.createCompany(fields as CompanyFields & { name: string }, acct(args))
+        : await client.updateCompany(args.company_id as number, fields, acct(args));
+      return jsonResult(data);
+    }
+    case 'delete_company':
+      await client.deleteCompany(args.company_id as number, acct(args));
+      return textResult('Company deletion scheduled successfully.');
+    case 'set_contact_company':
+      return jsonResult(await client.setContactCompany(args.contact_id as number, args.company_id as number | null, acct(args)));
 
     // ─── Contacts ────────────────────────────────────────
     case 'list_contacts': {

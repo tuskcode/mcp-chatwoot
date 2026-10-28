@@ -1,6 +1,21 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { ChatwootConfig } from '../utils/config.js';
 import { logger } from '../utils/logger.js';
+import type { CompanyFields, CompanySort, CompanyResponse, CompanyPage, ChatwootCompany, ChatwootContact } from './types.js';
+
+/** Preserve omitted nested keys while retaining explicit null values. */
+function mergeAttributes(current: Record<string, unknown>, updates: Record<string, unknown>): Record<string, unknown> {
+  const result = { ...current, ...updates };
+  return Object.fromEntries(Object.entries(result).map(([key, value]) => {
+    const previous = current[key];
+    if (Object.hasOwn(updates, key) && value && previous &&
+        typeof value === 'object' && !Array.isArray(value) &&
+        typeof previous === 'object' && !Array.isArray(previous)) {
+      return [key, mergeAttributes(previous as Record<string, unknown>, value as Record<string, unknown>)];
+    }
+    return [key, value];
+  }));
+}
 
 export class ChatwootClient {
   private http: AxiosInstance | null;
@@ -113,6 +128,58 @@ export class ChatwootClient {
     const id = accountId || this.defaultAccountId;
     const res = await http.get('/');
     return { success: true, accountName: res.data?.name, accountId: id };
+  }
+
+  // ─── Companies ───────────────────────────────────────────
+
+  async listCompanies(page = 1, sort: CompanySort = 'name', accountId?: number): Promise<CompanyPage<ChatwootCompany>> {
+    const res = await this.forAccount(accountId).get('/companies', { params: { page, sort } });
+    return res.data;
+  }
+
+  async searchCompanies(query: string, page = 1, sort: CompanySort = 'name', accountId?: number): Promise<CompanyPage<ChatwootCompany>> {
+    const res = await this.forAccount(accountId).get('/companies/search', { params: { q: query, page, sort } });
+    return res.data;
+  }
+
+  async getCompany(companyId: number, accountId?: number): Promise<CompanyResponse> {
+    const res = await this.forAccount(accountId).get(`/companies/${companyId}`);
+    return res.data;
+  }
+
+  async getCompanyContacts(companyId: number, page = 1, accountId?: number): Promise<CompanyPage<ChatwootContact>> {
+    const res = await this.forAccount(accountId).get(`/companies/${companyId}/contacts`, { params: { page } });
+    return res.data;
+  }
+
+  async createCompany(data: CompanyFields & { name: string }, accountId?: number): Promise<CompanyResponse> {
+    const res = await this.forAccount(accountId).post('/companies', { company: data });
+    return res.data;
+  }
+
+  async updateCompany(companyId: number, data: CompanyFields, accountId?: number): Promise<CompanyResponse> {
+    const updates = { ...data };
+    // Chatwoot replaces additional_attributes and only shallow-merges custom_attributes.
+    if (data.additional_attributes !== undefined || data.custom_attributes !== undefined) {
+      const { payload: current } = await this.getCompany(companyId, accountId);
+      for (const key of ['additional_attributes', 'custom_attributes'] as const) {
+        if (data[key] !== undefined) updates[key] = mergeAttributes(current[key] ?? {}, data[key]);
+      }
+    }
+    const res = await this.forAccount(accountId).patch(`/companies/${companyId}`, { company: updates });
+    return res.data;
+  }
+
+  async deleteCompany(companyId: number, accountId?: number): Promise<void> {
+    await this.forAccount(accountId).delete(`/companies/${companyId}`);
+  }
+
+  async setContactCompany(contactId: number, companyId: number | null, accountId?: number): Promise<unknown> {
+    if (companyId === undefined) throw new Error('company_id is required; use null to unlink the contact');
+    // ContactsController silently ignores company_id when companies is disabled.
+    // This feature-gated read prevents reporting an ignored update as successful.
+    await this.listCompanies(1, 'name', accountId);
+    return this.updateContact(contactId, { company_id: companyId }, accountId);
   }
 
   // ─── Contacts ────────────────────────────────────────────
